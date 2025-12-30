@@ -53,6 +53,12 @@ const App: React.FC = () => {
   const handleSearch = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!query.trim()) return;
+
+    const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
+    if (!apiKey) {
+      alert("API Key is missing. Please check your deployment settings.");
+      return;
+    }
     
     setIsSearching(true);
     setResult(null);
@@ -81,19 +87,21 @@ const App: React.FC = () => {
     } catch (err) {
       console.error("Search error", err);
       setIsSearching(false);
+      alert("Failed to fetch definition. Please try again.");
     }
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim() || !result) return;
+    const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
+    if (!chatInput.trim() || !result || !apiKey) return;
 
     const userMsg: ChatMessage = { role: 'user', text: chatInput };
     setChatMessages(prev => [...prev, userMsg]);
     setChatInput('');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      const ai = new GoogleGenAI({ apiKey });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
@@ -240,7 +248,7 @@ const App: React.FC = () => {
 
       {/* Results View */}
       {view === 'search' && result && (
-        <main className="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
+        <main className="flex-1 overflow-y-auto p-4 space-y-6 pb-24 custom-scrollbar">
           
           {/* Main Card: Optimized for visual hierarchy */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
@@ -347,7 +355,7 @@ const App: React.FC = () => {
 
       {/* Notebook View */}
       {view === 'notebook' && (
-        <main className="flex-1 overflow-y-auto p-4 pb-24">
+        <main className="flex-1 overflow-y-auto p-4 pb-24 custom-scrollbar">
           <header className="mb-6">
             <h2 className="text-3xl font-bubble font-bold text-black">My Notebook</h2>
             <p className="text-slate-400">{notebook.length} words collected</p>

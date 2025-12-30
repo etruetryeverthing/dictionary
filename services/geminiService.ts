@@ -1,7 +1,15 @@
 
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const getApiKey = () => {
+  try {
+    return process.env.API_KEY || '';
+  } catch (e) {
+    return '';
+  }
+};
+
+const getAI = () => new GoogleGenAI({ apiKey: getApiKey() });
 
 export const dictionaryService = {
   async getDefinition(query: string, nativeLang: string, targetLang: string) {
