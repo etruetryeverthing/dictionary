@@ -13,6 +13,7 @@ export interface ExampleSentence {
 export interface DictionaryEntry {
   id: string;
   query: string;
+  targetWord: string; // The translated/target language term
   nativeExplanation: string;
   examples: ExampleSentence[];
   casualGuide: string;

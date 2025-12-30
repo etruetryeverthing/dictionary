@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { dictionaryService, audioUtils } from '../services/geminiService';
 
 interface AudioButtonProps {
@@ -10,16 +10,26 @@ interface AudioButtonProps {
 
 const AudioButton: React.FC<AudioButtonProps> = ({ text, className = '', size = 'md' }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const audioCache = useRef<AudioBuffer | null>(null);
 
   const handlePlay = async () => {
     if (isPlaying) return;
     setIsPlaying(true);
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-      const base64 = await dictionaryService.generateTTS(text);
-      if (base64) {
-        const decoded = audioUtils.decode(base64);
-        const buffer = await audioUtils.decodeAudioData(decoded, audioContext);
+      
+      let buffer = audioCache.current;
+      
+      if (!buffer) {
+        const base64 = await dictionaryService.generateTTS(text);
+        if (base64) {
+          const decoded = audioUtils.decode(base64);
+          buffer = await audioUtils.decodeAudioData(decoded, audioContext);
+          audioCache.current = buffer;
+        }
+      }
+
+      if (buffer) {
         const source = audioContext.createBufferSource();
         source.buffer = buffer;
         source.connect(audioContext.destination);
@@ -42,7 +52,7 @@ const AudioButton: React.FC<AudioButtonProps> = ({ text, className = '', size = 
 
   return (
     <button
-      onClick={handlePlay}
+      onClick={(e) => { e.stopPropagation(); handlePlay(); }}
       disabled={isPlaying}
       className={`${sizes[size]} flex items-center justify-center rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all transform active:scale-95 shadow-md disabled:opacity-50 ${className}`}
     >

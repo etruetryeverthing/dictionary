@@ -8,18 +8,21 @@ export const dictionaryService = {
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `User is searching for "${query}" from ${targetLang} to ${nativeLang}. Provide a detailed explanation.`,
+      contents: `User is searching for "${query}" from ${targetLang} to ${nativeLang} (or vice versa). Provide a detailed dictionary entry.`,
       config: {
-        systemInstruction: `You are a helpful, casual, and fun AI dictionary. 
+        thinkingConfig: { thinkingBudget: 0 },
+        systemInstruction: `You are a helpful AI dictionary. 
         Return a JSON object with:
+        - targetWord: The main word or phrase in the ${targetLang} language that matches the user's intent.
         - nativeExplanation: A natural language explanation in ${nativeLang}.
         - examples: Array of 2 objects { original: string (in ${targetLang}), translation: string (in ${nativeLang}) }.
-        - casualGuide: A short, concise, and fun (friend-like) usage guide covering culture, tone, and similar words in ${nativeLang}.
-        Avoid textbook style. Be direct and punchy.`,
+        - casualGuide: A short usage guide in ${nativeLang}.
+        Focus on accuracy and clear distinction between languages.`,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
           properties: {
+            targetWord: { type: Type.STRING },
             nativeExplanation: { type: Type.STRING },
             examples: {
               type: Type.ARRAY,
@@ -33,7 +36,7 @@ export const dictionaryService = {
             },
             casualGuide: { type: Type.STRING }
           },
-          required: ["nativeExplanation", "examples", "casualGuide"]
+          required: ["targetWord", "nativeExplanation", "examples", "casualGuide"]
         }
       }
     });
@@ -45,7 +48,7 @@ export const dictionaryService = {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
       contents: {
-        parts: [{ text: `A clean, vibrant, 3D style concept illustration representing the word or phrase "${query}" in the context of ${targetLang} language learning. Simple background, colorful and engaging.` }]
+        parts: [{ text: `A clean, vibrant, 3D style concept illustration representing "${query}" in the context of ${targetLang} language. Simple white background, engaging.` }]
       },
       config: {
         imageConfig: { aspectRatio: "1:1" }
@@ -84,16 +87,16 @@ export const dictionaryService = {
     const ai = getAI();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Create a short, fun, and engaging story using these words: ${words.join(', ')}. Target language is ${targetLang}, explanation/translations in ${nativeLang}.`,
+      contents: `Create a short, fun story using: ${words.join(', ')}. Target: ${targetLang}, Explanations: ${nativeLang}.`,
       config: {
-        systemInstruction: "You are a creative writer. Write a very short story (max 150 words) that naturally uses the provided words. The story should be in the target language but provide translations for the keywords in parentheses.",
+        thinkingConfig: { thinkingBudget: 0 },
+        systemInstruction: "Write a 100-word story in the target language with translations in parentheses.",
       }
     });
     return response.text;
   }
 };
 
-// Audio Utilities
 export const audioUtils = {
   decode(base64: string) {
     const binaryString = atob(base64);
