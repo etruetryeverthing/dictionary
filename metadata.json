@@ -1,0 +1,7 @@
+{
+  "name": "Copy of LingoVibe AI Dictionary",
+  "description": "A vibrant, AI-powered dictionary that goes beyond definitions with concept images, casual usage tips, interactive chat, and smart flashcards.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
